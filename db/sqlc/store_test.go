@@ -12,7 +12,6 @@ func TestTransferTx(t *testing.T) {
 
 	account1 := createRandomAccount(t)
 	account2 := createRandomAccount(t)
-
 	n := 5
 	amount := int64(10)
 
@@ -22,6 +21,7 @@ func TestTransferTx(t *testing.T) {
 	// run n concurrent transfer transaction
 	for i := 0; i < n; i++ {
 		go func() {
+			// Start a transaction for each transfer
 			result, err := store.TransferTx(context.Background(), TransferTxParams{
 				FromAccountID: account1.ID,
 				ToAccountID:   account2.ID,
@@ -74,6 +74,18 @@ func TestTransferTx(t *testing.T) {
 		_, err = store.GetEntry(context.Background(), toEntry.ID)
 		require.NoError(t, err)
 
-		// TODO: check accounts' balance
+
+		fromAccount := result.FromAccount
+		require.NotEmpty(t, fromAccount)
+		require.Equal(t, account1.ID, fromAccount.ID)
+		require.Equal(t, account1.Owner, fromAccount.Owner)
+		require.Equal(t, account1.Balance, fromAccount.Balance)
+
+		toAccount := result.ToAccount
+		require.NotEmpty(t, toAccount)
+		require.Equal(t, account2.ID, toAccount.ID)
+		require.Equal(t, account2.Owner, toAccount.Owner)
+		require.Equal(t, account2.Balance, toAccount.Balance)
+
 	}
 }
